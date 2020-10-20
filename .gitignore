@@ -1,0 +1,9 @@
+*.py[cod]
+
+*/migrations/
+*/__pycache__/
+
+*/venv/
+*/app.db
+*/node_modules
+*/__pycache/

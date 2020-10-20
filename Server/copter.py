@@ -6,6 +6,7 @@ app = create_app()
 
 @app.cli.command('db_init')
 def db_init():
+    Controller.query.delete()
     controller = Controller()
     db.session.add(controller)
     db.session.commit()

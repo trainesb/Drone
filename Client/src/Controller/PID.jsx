@@ -29,15 +29,15 @@ const PID = () => {
   }
 
   return(
-    <div style={{width: '8rem', border: 'solid thin grey', borderRadius: '0.5rem'}} className='p-2'>
+    <div style={{width: '9rem', border: 'solid thin grey', borderRadius: '0.5rem'}} className='p-2'>
       <label for='kp' style={{width: '2rem'}}>kp:</label>
-      <input name='kp' type="number" min="0" step="0.001" value={kp} onChange={handleChange} style={{width: '4rem', paddingLeft: '0.5rem'}} />
+      <input name='kp' type="number" min="0" step="0.001" value={kp} onChange={handleChange} style={{width: '5rem', paddingLeft: '0.5rem'}} />
 
       <label for='ki' style={{width: '2rem'}}>ki:</label>
-      <input name='ki' type="number" min="0" step="0.001" value={ki} onChange={handleChange} style={{width: '4rem', paddingLeft: '0.5rem'}} />
+      <input name='ki' type="number" min="0" step="0.001" value={ki} onChange={handleChange} style={{width: '5rem', paddingLeft: '0.5rem'}} />
 
       <label for='kd' style={{width: '2rem'}}>kd:</label>
-      <input name='kd' type="number" min="0" step="0.001" value={kd} onChange={handleChange} style={{width: '4rem', paddingLeft: '0.5rem'}} />
+      <input name='kd' type="number" min="0" step="0.001" value={kd} onChange={handleChange} style={{width: '5rem', paddingLeft: '0.5rem'}} />
     </div>
   )
 }

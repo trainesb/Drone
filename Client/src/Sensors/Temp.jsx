@@ -21,10 +21,10 @@ const Temp = () => {
   }
 
   return (
-    <div style={{width: '8rem', border: 'solid thin grey', borderRadius: '0.5rem'}} className='p-2'>
-      <p style={{margin: '0.5rem auto'}}>Temp F: {tempF}</p>
-      <p style={{margin: '0.5rem auto'}}>Temp C: {tempC}</p>
-      <p style={{margin: '0.5rem auto'}}>Preassure: {preassure}</p>
+    <div style={{width: '9rem', border: 'solid thin grey', borderRadius: '0.5rem'}} className='p-2'>
+      <p style={{margin: '0.5rem auto'}}>Temp F: {tempF.toFixed(2)}</p>
+      <p style={{margin: '0.5rem auto'}}>Temp C: {tempC.toFixed(2)}</p>
+      <p style={{margin: '0.5rem auto'}}>Preassure: {preassure.toFixed(2)}</p>
     </div>
   )
 }

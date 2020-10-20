@@ -1,6 +1,7 @@
 import pigpio
 import threading
 import time
+from flask import current_app
 from app.api import bp
 from app import db, mpu, qmc, bmp280
 from datetime import datetime
@@ -99,14 +100,6 @@ def primeDrone():
     time.sleep(1)
     return {'status': True}
 
-thread = None
-# Start the Drone
-@bp.route('/api/start', methods=['GET'])
-def startDrone():
-    thread = threading.Thread(target=PID)
-    thread.start()
-    return {'status': True}
-
 # Stop the Drone
 @bp.route('/api/stop', methods=['GET'])
 def stopDrone():
@@ -121,110 +114,120 @@ def stopDrone():
     db.session.commit()
     return {'status': True}
 
+thread = None
+# Start the Drone
+@bp.route('/api/start', methods=['GET'])
+def startDrone():
+    thread = threading.Thread(target=PID, kwargs={'app': current_app._get_current_object()})
+    thread.start()
+    return {'status': True}
+
 # PID
-def PID():
-    total_angle_x = 0
-    total_angle_y = 0
+def PID(app):
+    with app.app_context():
+        total_angle_x = 0
+        total_angle_y = 0
 
-    pid_p_y = 0
-    pid_i_y = 0
-    pid_d_y = 0
+        pid_p_y = 0
+        pid_i_y = 0
+        pid_d_y = 0
 
-    pid_p_x = 0
-    pid_i_x = 0
-    pid_d_x = 0
+        pid_p_x = 0
+        pid_i_x = 0
+        pid_d_x = 0
 
-    PID_y = 0
-    PID_x = 0
-    pwmBackLeft = 0
-    pwmBackRight = 0
-    pwmFrontLeft = 0
-    pwmFrontRight = 0
+        PID_y = 0
+        PID_x = 0
+        pwmBackLeft = 0
+        pwmBackRight = 0
+        pwmFrontLeft = 0
+        pwmFrontRight = 0
 
-    previous_error_y = 0
-    previous_error_x = 0
+        previous_error_y = 0
+        previous_error_x = 0
 
-    time = datetime.now()
-    while True:
-        controller = Controller.query.first()
-        desired_angle_y = controller.desired_angel_y
-        desired_angle_x = controller.desired_angel_x
-        velocity_x = controller.velocity_x
-        kp = controller.kp
-        ki = controller.ki
-        kd = controller.kd
-        throttle = controller.freq
-
-        timePrev = time
         time = datetime.now()
-        elapsedTime = (time - timePrev).total_seconds()
+        while True:
+            controller = Controller.query.first()
+            desired_angle_y = controller.desired_angel_y
+            desired_angle_x = controller.desired_angel_x
+            velocity_x = controller.velocity_x
+            kp = controller.kp
+            ki = controller.ki
+            kd = controller.kd
+            throttle = controller.freq
 
-        gyro = mpu.getRotation()
-        controller.velocity_x += gyro['accel_xout'] * elapsedTime
+            timePrev = time
+            time = datetime.now()
+            elapsedTime = (time - timePrev).total_seconds()
 
-        total_angle_x = 0.98 * (total_angle_x + gyro['gyro_xout'] * elapsedTime) + 0.02 * gyro['accel_angle_x']
-        total_angle_y = 0.98 * (total_angle_y + gyro['gyro_yout'] * elapsedTime) + 0.02 * gyro['accel_angle_y']
+            gyro = mpu.getRotation()
+            print('Velocity X: ', controller.velocity_x)
+            controller.velocity_x += gyro['accel_xout'] * elapsedTime
 
-        error_y = total_angle_y - desired_angle_y
-        error_x = total_angle_x - desired_angle_x
+            total_angle_x = 0.98 * (total_angle_x + gyro['gyro_xout'] * elapsedTime) + 0.02 * gyro['accel_angle_x']
+            total_angle_y = 0.98 * (total_angle_y + gyro['gyro_yout'] * elapsedTime) + 0.02 * gyro['accel_angle_y']
 
-        pid_p_y = kp * error_y
-        pid_p_x = kp * error_x
-        if error_y > -3 and error_y < 3:
-            pid_i_y = pid_i_y + (ki * error_y)
-        if error_x > -3 and error_x < 3:
-            pid_i_x = pid_i_x + (ki * error_x)
+            error_y = total_angle_y - desired_angle_y
+            error_x = total_angle_x - desired_angle_x
 
-        pid_d_y = kd * ((error_y - previous_error_y) / elapsedTime)
-        PID_y = pid_p_y + pid_i_y + pid_d_y
+            pid_p_y = kp * error_y
+            pid_p_x = kp * error_x
+            if error_y > -3 and error_y < 3:
+                pid_i_y = pid_i_y + (ki * error_y)
+            if error_x > -3 and error_x < 3:
+                pid_i_x = pid_i_x + (ki * error_x)
 
-        pid_d_x = kd * ((error_x - previous_error_x) / elapsedTime)
-        PID_x = pid_p_x + pid_i_x + pid_d_x
+            pid_d_y = kd * ((error_y - previous_error_y) / elapsedTime)
+            PID_y = pid_p_y + pid_i_y + pid_d_y
 
-        if PID_y < -1000:
-            PID_y = 1000
-        if PID_y > 1000:
-            PID_y = 1000
+            pid_d_x = kd * ((error_x - previous_error_x) / elapsedTime)
+            PID_x = pid_p_x + pid_i_x + pid_d_x
 
-        if PID_x < -1000:
-            PID_x = 1000
-        if PID_x > 1000:
-            PID_x = 1000
+            if PID_y < -1000:
+                PID_y = 1000
+            if PID_y > 1000:
+                PID_y = 1000
 
-        print("PID: ", PID)
+            if PID_x < -1000:
+                PID_x = 1000
+            if PID_x > 1000:
+                PID_x = 1000
 
-        pwmBackLeft = throttle - PID_y + PID_x
-        pwmBackRight = throttle + PID_y + PID_x
-        pwmFrontLeft = throttle - PID_y - PID_x
-        pwmFrontRight = throttle + PID_y - PID_x
+            print("PID: ", PID)
 
-        if pwmBackLeft < 1000:
-            pwmBackLeft = 1000
-        if pwmBackLeft > 2500:
-            pwmBackLeft = 2500
+            pwmBackLeft = throttle - PID_y + PID_x
+            pwmBackRight = throttle + PID_y + PID_x
+            pwmFrontLeft = throttle - PID_y - PID_x
+            pwmFrontRight = throttle + PID_y - PID_x
 
-        if pwmBackRight < 1000:
-            pwmBackRight = 1000
-        if pwmBackRight > 2500:
-            pwmBackRight = 2500
+            if pwmBackLeft < 1000:
+                pwmBackLeft = 1000
+            if pwmBackLeft > 2500:
+                pwmBackLeft = 2500
 
-        if pwmFrontLeft < 1000:
-            pwmFrontLeft = 1000
-        if pwmFrontLeft > 2500:
-            pwmFrontLeft = 2500
+            if pwmBackRight < 1000:
+                pwmBackRight = 1000
+            if pwmBackRight > 2500:
+                pwmBackRight = 2500
 
-        if pwmFrontRight < 1000:
-            pwmFrontRight = 1000
-        if pwmFrontRight > 2500:
-            pwmFrontRight = 2500
+            if pwmFrontLeft < 1000:
+                pwmFrontLeft = 1000
+            if pwmFrontLeft > 2500:
+                pwmFrontLeft = 2500
 
-        pi.set_servo_pulsewidth(controller.front_right, pwmFrontRight)
-        pi.set_servo_pulsewidth(controller.front_left, pwmFrontLeft)
-        pi.set_servo_pulsewidth(controller.back_right, pwmBackRight)
-        pi.set_servo_pulsewidth(controller.back_left, pwmBackLeft)
+            if pwmFrontRight < 1000:
+                pwmFrontRight = 1000
+            if pwmFrontRight > 2500:
+                pwmFrontRight = 2500
 
-        previous_error_y = error_y
-        previous_error_x = error_x
+            pi.set_servo_pulsewidth(controller.front_right, pwmFrontRight)
+            pi.set_servo_pulsewidth(controller.front_left, pwmFrontLeft)
+            pi.set_servo_pulsewidth(controller.back_right, pwmBackRight)
+            pi.set_servo_pulsewidth(controller.back_left, pwmBackLeft)
 
-        db.session.add(controller)
-        db.session.commit()
+            previous_error_y = error_y
+            previous_error_x = error_x
+
+            db.session.add(controller)
+            db.session.commit()

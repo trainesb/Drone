@@ -14,6 +14,7 @@ class Controller(db.Model):
     back_left = db.Column(db.Integer)
 
     velocity_x = db.Column(db.Float)
+    velocity_z = db.Column(db.Float)
 
     pwmBackLeft = db.Column(db.Float)
     pwmBackRight = db.Column(db.Float)
@@ -31,6 +32,7 @@ class Controller(db.Model):
         self.back_left = 24
 
         self.velocity_x = 0.0
+        self.velocity_z = 0.0
 
         self.pwmBackLeft = 0.0
         self.pwmBackRight = 0.0

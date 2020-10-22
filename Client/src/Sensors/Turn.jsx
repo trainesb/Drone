@@ -16,7 +16,10 @@ const Turn = () => {
   }
 
   return (
-    <TurnCoordinator turn={turn} showBox={false} />
+    <>
+      <TurnCoordinator turn={turn} showBox={false} />
+      <p className="text-center">Turn: {turn}</p>
+    </>
   )
 }
 export default Turn

@@ -16,7 +16,10 @@ const Speed = () => {
   }
 
   return (
-    <Airspeed speed={speed} showBox={false} />
+    <>
+      <Airspeed speed={speed} showBox={false} />
+      <p className="text-center">Speed: {speed}</p>
+    </>
   )
 }
 export default Speed

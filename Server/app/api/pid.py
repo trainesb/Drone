@@ -87,6 +87,10 @@ def PIDThread(app):
             rotation = mpu.getRotation()
             accel = mpu.getAccel()
             controller.velocity_x += accel['x'] * elapsedTime
+            if controller.velocity_x <= 0: controller.velocity_x = 0.0
+            controller.velocity_z += accel['z'] * elapsedTime
+            if controller.velocity_z <= 0: controller.velocity_z = 0.0
+
 
 
             error_x = rotation['roll'] - pid.desired_angel_x
@@ -95,8 +99,8 @@ def PIDThread(app):
                 pid_roll_i = pid_roll_i + (pid.roll_i * error_x)
             pid_roll_d = pid.roll_d * ((error_x - previous_error_roll) / elapsedTime)
             PID_roll = pid_roll_p + pid_roll_i + pid_roll_d
-            if PID_roll < -50: PID_roll = 50
-            elif PID_roll > 50: PID_roll = 50
+            if PID_roll < -100: PID_roll = -100
+            elif PID_roll > 100: PID_roll = 100
 
 
             error_y = rotation['pitch'] - pid.desired_angel_y
@@ -105,14 +109,14 @@ def PIDThread(app):
                 pid_pitch_i = pid_pitch_i + (pid.pitch_i * error_y)
             pid_pitch_d = pid.pitch_d * ((error_y - previous_error_pitch) / elapsedTime)
             PID_pitch = pid_pitch_p + pid_pitch_i + pid_pitch_d
-            if PID_pitch < -50: PID_pitch = 50
-            elif PID_pitch > 50: PID_pitch = 50
+            if PID_pitch < -100: PID_pitch = -100
+            elif PID_pitch > 100: PID_pitch = 100
 
             throttle = controller.freq
-            pwmBackLeft = throttle - PID_pitch + PID_roll
-            pwmBackRight = throttle + PID_pitch + PID_roll
-            pwmFrontLeft = throttle - PID_pitch - PID_roll
-            pwmFrontRight = throttle + PID_pitch - PID_roll
+            pwmBackLeft = throttle - PID_roll + PID_pitch
+            pwmBackRight = throttle + PID_roll + PID_pitch
+            pwmFrontLeft = throttle - PID_roll - PID_pitch
+            pwmFrontRight = throttle + PID_roll - PID_pitch
 
             if pwmBackLeft < 1000:
                 pwmBackLeft = 1000

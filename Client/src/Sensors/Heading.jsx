@@ -16,7 +16,10 @@ const Heading = () => {
   }
 
   return(
-    <HeadingIndicator heading={heading} showBox={false} />
+    <>
+      <HeadingIndicator heading={heading} showBox={false} />
+      <p className="text-center">Heading: {heading}</p>
+    </>
   )
 }
 export default Heading

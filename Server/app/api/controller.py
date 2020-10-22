@@ -16,6 +16,12 @@ def getSpeed():
     controller = Controller.query.first()
     return {'velocity_x': controller.velocity_x}
 
+# Get Controller Velocity Z
+@bp.route('/api/vario', methods=['GET'])
+def getVario():
+    controller = Controller.query.first()
+    return {'vario': controller.velocity_z}
+
 # Get Controller Desired Angles
 @bp.route('/api/desired/angles', methods=['GET'])
 def getDesiredAngles():

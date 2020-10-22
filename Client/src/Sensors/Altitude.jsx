@@ -19,7 +19,10 @@ const Altitude = () => {
   }
 
   return(
-    <Altimeter altitude={altitude} showBox={false} />
+    <>
+      <Altimeter altitude={altitude} showBox={false} />
+      <p className="text-center">Altitude: {altitude}</p>
+    </>
   )
 }
 export default Altitude

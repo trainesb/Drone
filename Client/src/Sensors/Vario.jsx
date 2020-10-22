@@ -9,14 +9,17 @@ const Vario = () => {
   }, [])
 
   function getVario() {
-    fetch('https://192.168.1.114/api/MPU/accel')
+    fetch('https://192.168.1.114/api/vario')
       .then(response => response.json())
-      .then(data => setVario(data.z))
+      .then(data => setVario(data.vario))
     setTimeout(getVario, 1000)
   }
 
   return(
-    <Variometer vario={vario} showBox={false} />
+    <>
+      <Variometer vario={vario} showBox={false} />
+      <p className="text-center">Vario: {vario}</p>
+    </>
   )
 }
 export default Vario

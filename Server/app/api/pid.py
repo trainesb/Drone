@@ -10,7 +10,7 @@ from app.models.PID import PID
 
 pi = pigpio.pi()
 break_thread = False
-thread = None
+thread_stopped = False
 
 # Prime the Drone
 @bp.route('/api/prime', methods=['GET'])
@@ -26,8 +26,11 @@ def primeDrone():
 # Stop the Drone
 @bp.route('/api/stop', methods=['GET'])
 def stopDrone():
+    global break_thread, thread_stopped
     break_thread = True
-    thread.join()
+    while not thread_stopped:
+        print('Waitning for thread to stop')
+    thread_stopped = False
     controller = Controller.query.first()
     controller.freq = 1000
     pi.set_servo_pulsewidth(controller.front_right, 0)
@@ -41,17 +44,15 @@ def stopDrone():
 # Start the Drone
 @bp.route('/api/start', methods=['GET'])
 def startDrone():
+    global break_thread, thread_stopped
+    thread_stopped = False
     break_thread = False
-    thread = threading.Thread(target=PID, kwargs={'app': current_app._get_current_object()})
-    thread.start()
+    threading.Thread(target=PIDThread, kwargs={'app': current_app._get_current_object()}).start()
     return {'status': True}
 
-def PID(app):
+def PIDThread(app):
+    global break_thread, thread_stopped
     with app.app_context():
-        # Totals
-        total_angle_x = 0
-        total_angle_y = 0
-
         # PID Variables
         pid_roll_p = 0
         pid_roll_i = 0
@@ -78,52 +79,36 @@ def PID(app):
         while True:
             if break_thread: break
             pid = PID.query.first()
+            controller = Controller.query.first()
 
-
-            velocity_x = controller.velocity_x
             timePrev = time
             time = datetime.now()
             elapsedTime = (time - timePrev).total_seconds()
-            gyro = mpu.getRotation()
-            controller.velocity_x += gyro['accel_xout'] * elapsedTime
+            rotation = mpu.getRotation()
+            accel = mpu.getAccel()
+            controller.velocity_x += accel['x'] * elapsedTime
+
+
+            error_x = rotation['roll'] - pid.desired_angel_x
+            pid_roll_p = pid.roll_p * error_x
+            if error_x > -3 and error_x < 3:
+                pid_roll_i = pid_roll_i + (pid.roll_i * error_x)
+            pid_roll_d = pid.roll_d * ((error_x - previous_error_roll) / elapsedTime)
+            PID_roll = pid_roll_p + pid_roll_i + pid_roll_d
+            if PID_roll < -50: PID_roll = 50
+            elif PID_roll > 50: PID_roll = 50
+
+
+            error_y = rotation['pitch'] - pid.desired_angel_y
+            pid_pitch_p = pid.pitch_p * error_y
+            if error_y > -3 and error_y < 3:
+                pid_pitch_i = pid_pitch_i + (pid.pitch_i * error_y)
+            pid_pitch_d = pid.pitch_d * ((error_y - previous_error_pitch) / elapsedTime)
+            PID_pitch = pid_pitch_p + pid_pitch_i + pid_pitch_d
+            if PID_pitch < -50: PID_pitch = 50
+            elif PID_pitch > 50: PID_pitch = 50
 
             throttle = controller.freq
-
-            desired_angle_x = pid.desired_angel_x
-            roll_p = pid.roll_p
-            roll_i = pid.roll_i
-            roll_d = pid.roll_d
-            total_angle_x = 0.98 * (total_angle_x + gyro['gyro_xout'] * elapsedTime) + 0.02 * gyro['accel_angle_x']
-            error_x = total_angle_x - desired_angle_x
-            pid_roll_p = roll_p * error_x
-            if error_x > -3 and error_x < 3:
-                pid_roll_i = pid_roll_i + (roll_i * error_x)
-            pid_roll_d = roll_d * ((error_x - previous_error_roll) / elapsedTime)
-            PID_roll = pid_roll_p + pid_roll_i + pid_roll_d
-            if PID_roll < -400:
-                PID_roll = 400
-            if PID_roll > 400:
-                PID_roll = 400
-
-
-            desired_angle_y = pid.desired_angel_y
-            pitch_p = pid.pitch_p
-            pitch_i = pid.pitch_i
-            pitch_d = pid.pitch_d
-            total_angle_y = 0.98 * (total_angle_y + gyro['gyro_yout'] * elapsedTime) + 0.02 * gyro['accel_angle_y']
-            error_y = total_angle_y - desired_angle_y
-            pid_pitch_p = pitch_p * error_y
-            if error_y > -3 and error_y < 3:
-                pid_pitch_i = pid_pitch_i + (pitch_i * error_y)
-            pid_pitch_d = pitch_d * ((error_y - previous_error_pitch) / elapsedTime)
-            PID_pitch = pid_pitch_p + pid_pitch_i + pid_pitch_d
-            if PID_pitch < -400:
-                PID_pitch = 400
-            if PID_pitch > 400:
-                PID_pitch = 400
-
-
-
             pwmBackLeft = throttle - PID_pitch + PID_roll
             pwmBackRight = throttle + PID_pitch + PID_roll
             pwmFrontLeft = throttle - PID_pitch - PID_roll
@@ -131,23 +116,31 @@ def PID(app):
 
             if pwmBackLeft < 1000:
                 pwmBackLeft = 1000
-            if pwmBackLeft > 2500:
-                pwmBackLeft = 2500
+            if pwmBackLeft > 1500:
+                pwmBackLeft = 1500
 
             if pwmBackRight < 1000:
                 pwmBackRight = 1000
-            if pwmBackRight > 2500:
-                pwmBackRight = 2500
+            if pwmBackRight > 1500:
+                pwmBackRight = 1500
 
             if pwmFrontLeft < 1000:
                 pwmFrontLeft = 1000
-            if pwmFrontLeft > 2500:
-                pwmFrontLeft = 2500
+            if pwmFrontLeft > 1500:
+                pwmFrontLeft = 1500
 
             if pwmFrontRight < 1000:
                 pwmFrontRight = 1000
-            if pwmFrontRight > 2500:
-                pwmFrontRight = 2500
+            if pwmFrontRight > 1500:
+                pwmFrontRight = 1500
+
+            #print('\nPWM Front Right: ', pwmFrontRight, ' Front Left: ', pwmFrontLeft)
+            #print('\PWM Back Right: ', pwmBackRight, ' Back Left: ', pwmBackLeft, '\n')
+            controller.pwmBackLeft = pwmBackLeft
+            controller.pwmBackRight = pwmBackRight
+            controller.pwmFrontLeft = pwmFrontLeft
+            controller.pwmFrontRight = pwmFrontRight
+
 
             pi.set_servo_pulsewidth(controller.front_right, pwmFrontRight)
             pi.set_servo_pulsewidth(controller.front_left, pwmFrontLeft)
@@ -159,3 +152,4 @@ def PID(app):
 
             db.session.add(controller)
             db.session.commit()
+    thread_stopped = True

@@ -6,7 +6,7 @@ const PitchP = () => {
   useEffect(() => {
     fetch('https://192.168.1.114/api/PID/pitch/p')
       .then(response => response.json())
-      .then(data => setP(data.kp))
+      .then(data => setP(data.pitch_p))
   }, [])
 
   function handleChange(event) {
@@ -20,7 +20,7 @@ const PitchP = () => {
 
   return (
     <>
-      <label for='pitch_p' style={{width: '2rem'}}>Pitch p:</label>
+      <label for='pitch_p' style={{width: '4rem'}}>Pitch p:</label>
       <input name='pitch_p' type="number" min="0.0" step="0.001" value={p} onChange={handleChange} style={{width: '5rem', paddingLeft: '0.5rem'}} />
     </>
   )
@@ -32,7 +32,7 @@ const PitchI = () => {
   useEffect(() => {
     fetch('https://192.168.1.114/api/PID/pitch/i')
       .then(response => response.json())
-      .then(data => setI(data.ki))
+      .then(data => setI(data.pitch_i))
   }, [])
 
   function handleChange(event) {
@@ -46,7 +46,7 @@ const PitchI = () => {
 
   return (
     <>
-      <label for='pitch_i' style={{width: '2rem'}}>Pitch i:</label>
+      <label for='pitch_i' style={{width: '4rem'}}>Pitch i:</label>
       <input name='pitch_i' type="number" min="0.0" step="0.001" value={i} onChange={handleChange} style={{width: '5rem', paddingLeft: '0.5rem'}} />
     </>
   )
@@ -58,7 +58,7 @@ const PitchD = () => {
   useEffect(() => {
     fetch('https://192.168.1.114/api/PID/pitch/d')
       .then(response => response.json())
-      .then(data => setD(data.kd))
+      .then(data => setD(data.pitch_d))
   }, [])
 
   function handleChange(event) {
@@ -72,7 +72,7 @@ const PitchD = () => {
 
   return (
     <>
-      <label for='pitch_d' style={{width: '2rem'}}>Pitch d:</label>
+      <label for='pitch_d' style={{width: '4rem'}}>Pitch d:</label>
       <input name='pitch_d' type="number" min="0.0" step="0.001" value={d} onChange={handleChange} style={{width: '5rem', paddingLeft: '0.5rem'}} />
     </>
   )
@@ -84,7 +84,7 @@ const RollP = () => {
   useEffect(() => {
     fetch('https://192.168.1.114/api/PID/roll/p')
       .then(response => response.json())
-      .then(data => setP(data.kp))
+      .then(data => setP(data.roll_p))
   }, [])
 
   function handleChange(event) {
@@ -98,7 +98,7 @@ const RollP = () => {
 
   return (
     <>
-      <label for='roll_p' style={{width: '2rem'}}>Roll p:</label>
+      <label for='roll_p' style={{width: '4rem'}}>Roll p:</label>
       <input name='roll_p' type="number" min="0.0" step="0.001" value={p} onChange={handleChange} style={{width: '5rem', paddingLeft: '0.5rem'}} />
     </>
   )
@@ -110,7 +110,7 @@ const RollI = () => {
   useEffect(() => {
     fetch('https://192.168.1.114/api/PID/roll/i')
       .then(response => response.json())
-      .then(data => setI(data.ki))
+      .then(data => setI(data.roll_i))
   }, [])
 
   function handleChange(event) {
@@ -124,7 +124,7 @@ const RollI = () => {
 
   return (
     <>
-      <label for='roll_i' style={{width: '2rem'}}>Roll i:</label>
+      <label for='roll_i' style={{width: '4rem'}}>Roll i:</label>
       <input name='roll_i' type="number" min="0.0" step="0.001" value={i} onChange={handleChange} style={{width: '5rem', paddingLeft: '0.5rem'}} />
     </>
   )
@@ -136,7 +136,7 @@ const RollD = () => {
   useEffect(() => {
     fetch('https://192.168.1.114/api/PID/roll/d')
       .then(response => response.json())
-      .then(data => setD(data.kd))
+      .then(data => setD(data.roll_d))
   }, [])
 
   function handleChange(event) {
@@ -150,7 +150,7 @@ const RollD = () => {
 
   return (
     <>
-      <label for='roll_d' style={{width: '2rem'}}>Roll d:</label>
+      <label for='roll_d' style={{width: '4rem'}}>Roll d:</label>
       <input name='roll_d' type="number" min="0.0" step="0.001" value={d} onChange={handleChange} style={{width: '5rem', paddingLeft: '0.5rem'}} />
     </>
   )
@@ -159,12 +159,12 @@ const RollD = () => {
 const PID = () => {
   return(
     <>
-      <div style={{width: '9rem', border: 'solid thin grey', borderRadius: '0.5rem'}} className='p-2'>
+      <div style={{width: '11rem', border: 'solid thin grey', borderRadius: '0.5rem'}} className='p-2'>
         <PitchP />
         <PitchI />
         <PitchD />
       </div>
-      <div style={{width: '9rem', border: 'solid thin grey', borderRadius: '0.5rem'}} className='p-2'>
+      <div style={{width: '11rem', border: 'solid thin grey', borderRadius: '0.5rem'}} className='p-2'>
         <RollP />
         <RollI />
         <RollD />

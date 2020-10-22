@@ -5,6 +5,7 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 
 // Controller
+import PWM from './Controller/PWM.jsx'
 import PID from './Controller/PID.jsx'
 import Prime from './Controller/Prime.jsx'
 import Toggle from './Controller/Toggle.jsx'
@@ -24,8 +25,8 @@ import MonitorCamera from './Sensors/MonitorCamera.jsx'
 function App() {
   return (
     <div className="App">
-      <header style={{backgroundColor: 'lightgrey'}}>
-        <h1 className='p-3 text-center'>Drone</h1>
+      <header style={{backgroundColor: 'lightgrey', display: 'flex', justifyContent: 'space-around'}}>
+        <PWM />
       </header>
       <Container fluid>
         <Row>

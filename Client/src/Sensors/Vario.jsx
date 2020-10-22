@@ -9,9 +9,9 @@ const Vario = () => {
   }, [])
 
   function getVario() {
-    fetch('https://192.168.1.114/api/vario')
+    fetch('https://192.168.1.114/api/MPU/accel')
       .then(response => response.json())
-      .then(data => setVario(data.vario))
+      .then(data => setVario(data.z))
     setTimeout(getVario, 1000)
   }
 

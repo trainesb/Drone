@@ -9,9 +9,9 @@ const Turn = () => {
   }, [])
 
   function getTurn() {
-    fetch('https://192.168.1.114/api/turn')
+    fetch('https://192.168.1.114/api/MPU/rotation')
       .then(response => response.json())
-      .then(data => setTurn(data.turn))
+      .then(data => setTurn(data.roll))
     setTimeout(getTurn, 1000)
   }
 

@@ -2,17 +2,13 @@ from app.api import bp
 from app import db, mpu, qmc, bmp280
 from datetime import datetime
 from app.models.Controller import Controller
+from app.models.PID import PID
 
-
-# Get Gyro X
-@bp.route('/api/turn', methods=['GET'])
-def getTurn():
-    return {'turn': mpu.getRotation()['gyro_xout']}
-
-# Get Accel Z
-@bp.route('/api/vario', methods=['GET'])
-def getVario():
-    return {'vario': mpu.getRotation()['accel_zout']}
+# Get PWM
+@bp.route('/api/pwm', methods=['GET'])
+def getPWM():
+    controller = Controller.query.first()
+    return {'fr': controller.pwmFrontRight, 'fl': controller.pwmFrontLeft, 'br': controller.pwmBackRight, 'bl': controller.pwmBackLeft}
 
 # Get Controller Velocity X
 @bp.route('/api/speed', methods=['GET'])
@@ -23,15 +19,15 @@ def getSpeed():
 # Get Controller Desired Angles
 @bp.route('/api/desired/angles', methods=['GET'])
 def getDesiredAngles():
-    controller = Controller.query.first()
-    return {'desired_angel_x': controller.desired_angel_x, 'desired_angel_y': controller.desired_angel_y}
+    pid = PID.query.first()
+    return {'desired_angel_x': pid.desired_angel_x, 'desired_angel_y': pid.desired_angel_y}
 
 # Set Controler Desired Angle
 @bp.route('/api/desired/angle/<string:name>/<float:angle>', methods=['GET'])
 def setDesiredAngle(name, angle):
-    controller = Controller.query.first()
-    if name == 'x': controller.desired_angel_x = angle
-    elif name == 'y': controller.desired_angel_y = angle
+    pid = PID.query.first()
+    if name == 'x': pid.desired_angel_x = angle
+    elif name == 'y': pid.desired_angel_y = angle
     return {'status': True}
 
 # Get PID
@@ -89,8 +85,3 @@ def getBMP280():
 @bp.route('/api/heading', methods=['GET'])
 def getHeading():
     return {'heading': qmc.get_bearing()}
-
-# Get MPU data
-@bp.route('/api/mpu', methods=['GET'])
-def getMPU():
-    return mpu.getRotation()

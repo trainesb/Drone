@@ -39,22 +39,25 @@ class MPU6050:
         radians = math.atan2(y, self.dist(x, z))
         return math.degrees(radians)
 
+    def get_z_rotation(self, x, y, z):
+        radians = math.atan2(z, self.dist(x, y))
+        return math.degrees(radians)
+
+    def getGyro(self):
+        x = self.read_word_2c(0x43)/131.0
+        y = self.read_word_2c(0x45)/131.0
+        z = self.read_word_2c(0x47)/131.0
+        return {'x': x, 'y': y, 'z': z}
+
+    def getAccel(self):
+        x = self.read_word_2c(0x3b) / 16384.0
+        y = self.read_word_2c(0x3d) / 16384.0
+        z = self.read_word_2c(0x3f) / 16384.0
+        return {'x': x, 'y': y, 'z': z}
+
     def getRotation(self):
-        accel_xout = self.read_word_2c(0x3b)
-        accel_yout = self.read_word_2c(0x3d)
-        accel_zout = self.read_word_2c(0x3f)
-
-        accel_xout_scaled = accel_xout / 16384.0
-        accel_yout_scaled = accel_yout / 16384.0
-        accel_zout_scaled = accel_zout / 16384.0
-
-        accel_angle_x = self.get_x_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled)
-        accel_angle_y = self.get_y_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled)
-
-
-        gyro_xout = self.read_word_2c(0x43)/131.0
-        gyro_yout = self.read_word_2c(0x45)/131.0
-        gyro_zout = self.read_word_2c(0x47)/131.0
-
-
-        return {'accel_xout': accel_xout_scaled, 'accel_yout': accel_yout_scaled, 'accel_zout': accel_zout_scaled, 'accel_angle_x': accel_angle_x, 'accel_angle_y': accel_angle_y, 'gyro_xout': gyro_xout, 'gyro_yout': gyro_yout, 'gyro_zout': gyro_zout}
+        accel = self.getAccel()
+        roll = self.get_x_rotation(accel['x'], accel['y'], accel['z'])
+        pitch = self.get_y_rotation(accel['x'], accel['y'], accel['z'])
+        yaw = self.get_z_rotation(accel['x'], accel['y'], accel['z'])
+        return {'roll': roll, 'pitch': pitch, 'yaw': yaw}
